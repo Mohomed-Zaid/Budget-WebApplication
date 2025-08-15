@@ -6,13 +6,37 @@ const formEl = document.querySelector('.form');
 const inputDescriptionEl = document.querySelector('.input--description');
 const inputAmountEl = document.querySelector('.input--amount');
 
+// Function to update balance color
+const updateBalanceColor = (balance) => {
+    if (balance < 0) {
+        balanceNumberEl.style.color = 'red';
+    } else {
+        balanceNumberEl.style.color = ''; // Reset to default color
+    }
+};
+
+// Function to update balance
+const updateBalance = () => {
+    const income = +numberIncomeEl.textContent;
+    const expenses = +numberExpensesEl.textContent;
+    const updatedBalance = income - expenses;
+    balanceNumberEl.textContent = updatedBalance;
+    updateBalanceColor(updatedBalance);
+};
+
 const submitHandler = event => {
     // prevent default behavior
     event.preventDefault();
 
     // get input values
-    const description = inputDescriptionEl.value;
+    const description = inputDescriptionEl.value.trim();
     const amount = +inputAmountEl.value;
+
+    // validate inputs
+    if (!description || !amount) {
+        alert('Please fill in both description and amount fields.');
+        return;
+    }
 
     // create transaction item HTML
     const transactionItemHTML = `
@@ -41,52 +65,42 @@ const submitHandler = event => {
         numberIncomeEl.textContent = updatedIncome;
     } else {
         const currentExpenses = +numberExpensesEl.textContent;
-        const updatedExpenses = currentExpenses + amount * -1;
+        const updatedExpenses = currentExpenses + Math.abs(amount);
         numberExpensesEl.textContent = updatedExpenses;
     }
 
     // update balance
-    const income = +numberIncomeEl.textContent;
-    const expenses = +numberExpensesEl.textContent;
-    const updatedBalance = income - expenses;
-    balanceNumberEl.textContent = updatedBalance;
-
-    // make red if balance negative
-    if (income - expenses < 0) {
-        balanceNumberEl.style.color = 'red';
-    }
-}
+    updateBalance();
+};
 
 formEl.addEventListener('submit', submitHandler);
 
 const clickHandler = (event) => {
+    // Check if the clicked element is the delete button
+    if (!event.target.classList.contains('transaction__btn')) {
+        return;
+    }
+
     // remove transaction item visually
     const clickedEl = event.target.parentNode;
-    clickedEl.remove();
-
-    // update income or expenses
     const amountEl = clickedEl.querySelector('.transaction__amount');
     const amount = +amountEl.textContent;
 
+    clickedEl.remove();
+
+    // update income or expenses
     if (amount > 0) {
         const currentIncome = +numberIncomeEl.textContent;
         const updatedIncome = currentIncome - amount;
         numberIncomeEl.textContent = updatedIncome;
     } else {
         const currentExpenses = +numberExpensesEl.textContent;
-        const updatedExpenses = currentExpenses - amount * -1;
+        const updatedExpenses = currentExpenses - Math.abs(amount);
         numberExpensesEl.textContent = updatedExpenses;
     }
 
     // update balance
-    const income = +numberIncomeEl.textContent;
-    const expenses = +numberExpensesEl.textContent;
-    balanceNumberEl.textContent = income - expenses;
-
-    // make red if balance negative
-    if (income - expenses < 0) {
-        balanceNumberEl.style.color = 'red';
-    }
-}
+    updateBalance();
+};
 
 transactionsEl.addEventListener('click', clickHandler);
